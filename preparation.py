@@ -41,18 +41,32 @@ def get_labels(movie_id_list):
         labels_list.append(movie_label)
     return labels_list
 
-def dimension_reduction_pca(data, n_components, method):
+def dimension_reduction_pca_general(data, n_components, method):
     # scaling
     StSc = StandardScaler()
     data_scaled = StSc.fit_transform(data)
     # Fitting the PCA algorithm with our Data
-    # 90% ofvariance
     pca = PCA().fit(data_scaled)
-    data_reduced = pd.DataFrame(pca.transform(data_scaled), index=data.index)
     # Plotting the Cumulative Summation of the Explained Variance
     plt.figure()
     plt.plot(np.cumsum(pca.explained_variance_ratio_))
     plt.axhline(y=n_components, color='r', linestyle='-')
+    plt.xlabel('Number of Components')
+    plt.ylabel('Variance (%)')  # for each component
+    plt.title('Movies dataset explained variance')
+    plt.show()
+    plt.savefig('Movies_dataset_explained_variance_all_VAR_{}.png'.format(method))
+
+def dimension_reduction_pca_specific(data, n_components, method):
+    # scaling
+    StSc = StandardScaler()
+    data_scaled = StSc.fit_transform(data)
+    # Fitting the PCA algorithm with our Data
+    pca = PCA(n_components).fit(data_scaled)
+    data_reduced = pd.DataFrame(pca.transform(data_scaled), index=data.index)
+    # Plotting the Cumulative Summation of the Explained Variance
+    plt.figure()
+    plt.plot(np.cumsum(pca.explained_variance_ratio_))
     plt.xlabel('Number of Components')
     plt.ylabel('Variance (%)')  # for each component
     plt.title('Movies dataset explained variance')
@@ -134,7 +148,7 @@ class Preparation:
         Xtest_reduced = pd.DataFrame(Xtest_reduced, index=Xtest.index)
         Xtest_reduced.to_pickle("Xtest_{}_reduced.pkl".format(self.method))
         return Xtest_reduced
-    
+
     def test_preparation(self, chosen_features, pca):
         if self.method != "Naive":
             extraction_settings = ComprehensiveFCParameters()

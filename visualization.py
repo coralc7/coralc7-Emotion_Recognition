@@ -117,7 +117,7 @@ class Visualization:
         plt.title("Head Features, Entity: {}, Label: {}".format(splitted_movie_id[0], splitted_movie_id[1]))
         plt.savefig("Head Features_Entity_{}_Label_{}_.png".format(splitted_movie_id[0], splitted_movie_id[1]))
 
-    def Xtrain_summary_statistics(self):
+    def Xtrain_statistics_summary(self):
         return self.Xtrain.drop(Visualization.feature_2_drop, axis=1).describe()
 
     def boxplot(self, feature):

@@ -1,4 +1,6 @@
-from preparation import *
+from modelSelection import *
+import time
+from sklearn.ensemble import RandomForestClassifier
 
 
 def train_set_preparation_process(Preparation_instance):
@@ -14,9 +16,11 @@ def train_set_preparation_process(Preparation_instance):
     chosen_features = Xtrain_static_selected.columns
     print("Train set: reducing dimensions")
     if method == "Tsfresh":
-        pca, Xtrain_static_reduced = dimension_reduction_pca(Xtrain_static_selected, 0.8, method)
+        dimension_reduction_pca_general(Xtrain_static_selected, 0.8, method)
+        pca, Xtrain_static_reduced = dimension_reduction_pca_specific(Xtrain_static_selected, 0.8, method)
     else:
-        pca, Xtrain_static_reduced = dimension_reduction_pca(Xtrain_static_selected, 0.95, method)
+        dimension_reduction_pca_general(Xtrain_static_selected, 0.95, method)
+        pca, Xtrain_static_reduced = dimension_reduction_pca_specific(Xtrain_static_selected, 0.95, method)
     print("Train set: handling imbalanced data")
     Xtrain_resampled, ytrain_resampled = handling_imbalanced_data(Xtrain_static_reduced, ytrain_static)
     pd.DataFrame(Xtrain_resampled).to_pickle("Xtrain_{}_resampled.pkl".format(method))
@@ -63,6 +67,7 @@ Xtrain_statistics_summary.to_csv("Xtrain_statistics_summary.csv")
 features_2_boxplot = list(set(v.Xtrain.columns) - set(Visualization.feature_2_drop))
 for feature in features_2_boxplot:
     v.boxplot("head_features_norm")
+# WHAT TO DO ??
 p.to_pkl_train_test(Xtrain=v.Xtrain, ytrain=v.ytrain, Xtest=v.Xtest, ytest=v.ytest)
 
 # Preparation - feature extraction by Tsfresh method
@@ -73,7 +78,26 @@ Xtrain_resampled_tsfresh, ytrain_resampled_tsfresh, Xtest_reduced_tsfresh, ytest
 p = Preparation(method="Naive")
 Xtrain_resampled_naive, ytrain_resampled_naive, Xtest_reduced_naive, ytest_static_naive = preparation_process(Preparation_instance=p)
 
-
+# Hyperparameter Tuning
+m = ModelSelection("Naive")
+cv_iter, groups = m.get_cv_iter(random_state=2)
+rf_param = {'max_depth': list(range(20, 200, 20)) + [None],
+             'n_estimators': list(range(5, 40, 5)),
+             'max_features': ['sqrt', 'auto', 'log2'],
+             'min_samples_split': list(range(5, 40, 5)),
+             'min_samples_leaf': list(range(5, 40, 5)),
+             'bootstrap': [True, False],
+             'criterion': ['gini', 'entropy']
+              }
+RF = RandomForestClassifier(class_weight='balanced')
+start = time.time()
+model_best_params, model_best_score = m.hyperparameter_tuning(rf_param, RF, cv_iter, groups)
+end = time.time()
+total_time = end-start
+print("total time is: {} sec".format(total_time))
+print("total time is: {} hours".format(total_time/3600))
+print("The best params are: model_best_params")
+print("The best score is: model_best_score")
 
 
 
