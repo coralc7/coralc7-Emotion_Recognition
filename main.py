@@ -78,14 +78,15 @@ Xtrain_resampled_tsfresh, ytrain_resampled_tsfresh, Xtest_reduced_tsfresh, ytest
 p = Preparation(method="Naive")
 Xtrain_resampled_naive, ytrain_resampled_naive, Xtest_reduced_naive, ytest_static_naive = preparation_process(Preparation_instance=p)
 
-# Hyperparameter Tuning
+
+# Hyperparameter Tuning Naive RF
 m = ModelSelection("Naive")
 cv_iter, groups = m.get_cv_iter(random_state=2)
-rf_param = {'max_depth': list(range(20, 200, 20)) + [None],
-             'n_estimators': list(range(5, 40, 5)),
+rf_param = {'max_depth': list(range(140, 180, 5)),
+             'n_estimators': list(range(20, 50, 3)),
              'max_features': ['sqrt', 'auto', 'log2'],
-             'min_samples_split': list(range(5, 40, 5)),
-             'min_samples_leaf': list(range(5, 40, 5)),
+             'min_samples_split': list(range(3, 30, 3)),
+             'min_samples_leaf': list(range(2, 20, 3)),
              'bootstrap': [True, False],
              'criterion': ['gini', 'entropy']
               }
@@ -96,11 +97,23 @@ end = time.time()
 total_time = end-start
 print("total time is: {} sec".format(total_time))
 print("total time is: {} hours".format(total_time/3600))
-print("The best params are: model_best_params")
-print("The best score is: model_best_score")
+print("The best params are:")
+print(model_best_params)
+print("The best score is: ", model_best_score)
 
-
-
+# Hyperparameter Tuning Tsfresh RF
+m = ModelSelection("Tsfresh")
+cv_iter, groups = m.get_cv_iter(random_state=2)
+rf_param = {'max_depth': list(range(20, 200, 20)) + [None],
+             'n_estimators': list(range(5, 40, 5)),
+             'max_features': ['sqrt', 'auto', 'log2'],
+             'min_samples_split': list(range(5, 40, 5)),
+             'min_samples_leaf': list(range(5, 40, 5)),
+             'bootstrap': [True, False],
+             'criterion': ['gini', 'entropy']
+              }
+RF = RandomForestClassifier(class_weight='balanced')
+model_best_params, model_best_score = m.hyperparameter_tuning(rf_param, RF, cv_iter, groups)
 
 
 
