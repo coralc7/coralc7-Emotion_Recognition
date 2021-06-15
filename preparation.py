@@ -89,6 +89,12 @@ class Preparation:
     dict_convert_labels_2_numeric = Preprocessing.dict_convert_labels_2_numeric
     feature_2_drop = Visualization.feature_2_drop
     unique_labels = Preprocessing.unique_labels
+    feature_2_standardize = ['Brow Furrow', 'Brow Raise',
+       'Lip Corner Depressor', 'Smile', 'InnerBrowRaise', 'EyeClosure',
+       'NoseWrinkle', 'UpperLipRaise', 'LipSuck', 'LipPress', 'MouthOpen',
+       'ChinRaise', 'Smirk', 'LipPucker', 'Cheek Raise', 'Dimpler',
+       'Eye Widen', 'Lid Tighten', 'Lip Stretch', 'Jaw Drop', 'Pitch', 'Yaw',
+       'Roll', 'head_features_norm']
     number_2_concate = 501
 
     def __init__(self, method):
@@ -135,7 +141,17 @@ class Preparation:
         data_static_with_labels.to_pickle("{}_static_with_labels_{}.pkl".format(data_name, self.method))
         return data_static, data_static_with_labels["label"]
 
-    def feature_extraction_selection(self):
+    def data_standardization(self, data):
+        #data = p.Xtrain
+        StSc = StandardScaler()
+        for feature in self.feature_2_standardize:
+            #feature = p.feature_2_standardize[0]
+            data_reshape = np.array(data[feature].values.tolist()).reshape(-1, 1)
+            data[feature] = StSc.fit_transform(data_reshape)
+        return data
+
+    def Xtrain_feature_extraction_selection(self):
+        self.Xtrain = self.data_standardization(self.Xtrain)
         if self.method == "Tsfresh":
             return self.tsfresh_feature_extraction_selection()
         else:
@@ -150,6 +166,7 @@ class Preparation:
         return Xtest_reduced
 
     def test_preparation(self, chosen_features, pca):
+        self.Xtest = self.data_standardization(self.Xtest)
         if self.method != "Naive":
             extraction_settings = ComprehensiveFCParameters()
             Xtest_static = extract_features(self.Xtest, column_id='Name', column_sort='FrameIndex', default_fc_parameters=extraction_settings, impute_function=impute)
