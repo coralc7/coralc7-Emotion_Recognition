@@ -47,6 +47,24 @@ def preparation_process(Preparation_instance):
         ytest_static = load_pkls_file(Preparation.path, "Xtest_static_with_labels_{}".format(method))["label"]
     return Xtrain_resampled, ytrain_resampled, Xtest_reduced, ytest_static
 
+def evaluation(model, Xtrain, ytrain, Xtest, ytest, model_name):
+    model.fit(Xtrain, ytrain)
+    ytest_pred = model.predict(Xtest)
+    #ytrain_pred = Naive_GBM.predict(Xtrain)
+    ytest_pred_series = pd.Series(ytest_pred)
+    ytest_pred_series.to_csv('ytest_pred_' + model_name + '.csv', index=False, header=False)
+    print("The accuracy score of " + model_name, str(np.round(accuracy_score(ytest, ytest_pred), 2)))
+    print("The f1 score of model " + model_name,
+          str(np.round(f1_score(ytest, ytest_pred, average='weighted'), 2)))
+    print("The f1 micro of model " + model_name,
+          str(np.round(f1_score(ytest, ytest_pred, average='micro'), 2)))
+    #print("The accuracy score of model " + model_name +" for train set",
+          #str(np.round(accuracy_score(ytrain, ytrain_pred), 2)))
+    #print("The f1 score of model " + model_name +" for train set",
+          #str(np.round(f1_score(ytrain, ytrain_pred, average='weighted'), 2)))
+    #print("The f1 micro of model " + model_name +" for train set",
+          #str(np.round(f1_score(ytrain, ytrain_pred, average='micro'), 2)))
+
 
 # Preprocessing and Visualization
 p = Preprocessing()
@@ -214,43 +232,15 @@ ytest_tsfresh = ModelSelection_instance.ytest
 
 seed(1)
 # fit and predict on test set - GBM - Naive
-Naive_GBM.fit(Xtrain_Naive, ytrain_Naive)
-ytest_pred_GBM_Naive = Naive_GBM.predict(Xtest_Naive)
-ytest_pred_GBM_Naive_series = pd.Series(ytest_pred_GBM_Naive)
-ytest_pred_GBM_Naive_series.to_csv('ytest_pred_GBM_Naive.csv', index=False, header=False)
-print("The accuracy score of model GBM-Naive", str(np.round(accuracy_score(ytest_Naive, ytest_pred_GBM_Naive), 2)))
-print("The f1 score of model GBM-Naive", str(np.round(f1_score(ytest_Naive, ytest_pred_GBM_Naive, average='weighted'), 2)))
-print("The f1 micro of model GBM-Naive", str(np.round(f1_score(ytest_Naive, ytest_pred_GBM_Naive, average='micro'), 2)))
-
-
+evaluation(model=Naive_GBM, Xtrain=Xtrain_Naive, ytrain=ytrain_Naive, Xtest=Xtest_Naive, ytest=ytest_Naive, model_name="Naive_GBM")
 # fit and predict on test set - RF - Naive
-Naive_RF.fit(Xtrain_Naive, ytrain_Naive)
-ytest_pred_RF_Naive = Naive_RF.predict(Xtest_Naive)
-ytest_pred_RF_Naive_series = pd.Series(ytest_pred_RF_Naive)
-ytest_pred_RF_Naive_series.to_csv('ytest_pred_RF_Naive.csv', index=False, header=False)
-print("The accuracy score of model RF-Naive", str(np.round(accuracy_score(ytest_Naive, ytest_pred_RF_Naive), 2)))
-print("The f1 score of model RF-Naive", str(np.round(f1_score(ytest_Naive, ytest_pred_RF_Naive, average='weighted'), 2)))
-print("The f1 micro of model RF-Naive", str(np.round(f1_score(ytest_Naive, ytest_pred_RF_Naive, average='micro'), 2)))
-
+evaluation(model=Naive_RF, Xtrain=Xtrain_Naive, ytrain=ytrain_Naive, Xtest=Xtest_Naive, ytest=ytest_Naive, model_name="Naive_RF")
 # fit and predict on test set - GBM - Tsfresh
-tsfresh_GBM.fit(Xtrain_tsfresh, ytrain_tsfresh)
-ytest_pred_GBM_tsfresh = tsfresh_GBM.predict(Xtest_tsfresh)
-ytest_pred_GBM_tsfresh_series = pd.Series(ytest_pred_GBM_tsfresh)
-ytest_pred_GBM_tsfresh_series.to_csv('ytest_pred_GBM_tsfresh.csv', index=False, header=False)
-print("The accuracy score of model GBM-Tsfresh", str(np.round(accuracy_score(ytest_tsfresh, ytest_pred_GBM_tsfresh), 2)))
-print("The f1 score of model GBM-Tsfresh", str(np.round(f1_score(ytest_tsfresh, ytest_pred_GBM_tsfresh, average='weighted'), 2)))
-print("The f1 micro of model GBM-Tsfresh", str(np.round(f1_score(ytest_tsfresh, ytest_pred_GBM_tsfresh, average='micro'), 2)))
-
+evaluation(model=tsfresh_GBM, Xtrain=Xtrain_tsfresh, ytrain=ytrain_tsfresh, Xtest=Xtest_tsfresh, ytest=ytest_tsfresh, model_name="tsfresh_GBM")
 # fit and predict on test set - RF - Tsfresh
-tsfresh_RF.fit(Xtrain_tsfresh, ytrain_tsfresh)
-ytest_pred_RF_tsfresh = tsfresh_RF.predict(Xtest_tsfresh)
-ytest_pred_RF_tsfresh_series = pd.Series(ytest_pred_RF_tsfresh)
-ytest_pred_RF_tsfresh_series.to_csv('ytest_pred_RF_tsfresh.csv', index=False, header=False)
-print("The accuracy score of model RF-Tsfresh", str(np.round(accuracy_score(ytest_tsfresh, ytest_pred_RF_tsfresh), 2)))
-print("The f1 score of model RF-Tsfresh", str(np.round(f1_score(ytest_tsfresh, ytest_pred_RF_tsfresh, average='weighted'), 2)))
-print("The f1 micro of model RF-Tsfresh", str(np.round(f1_score(ytest_tsfresh, ytest_pred_RF_tsfresh, average='micro'), 2)))
+evaluation(model=tsfresh_RF, Xtrain=Xtrain_tsfresh, ytrain=ytrain_tsfresh, Xtest=Xtest_tsfresh, ytest=ytest_tsfresh, model_name="tsfresh_RF")
 
 # confusion matrix - the best model - RF-Tsfresh
-plot_confusion_matrix(tsfresh_RF, Xtest_tsfresh, ytest_tsfresh, cmap=plt.cm.Blues,  normalize='true')
+plot_confusion_matrix(tsfresh_RF, Xtest_tsfresh, ytest_tsfresh, cmap=plt.cm.Blues,  normalize='pred')
 plt.title("confusion matrix - the best model - RF-Tsfresh")
 plt.show()
